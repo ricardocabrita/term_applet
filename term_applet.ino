@@ -47,8 +47,8 @@ void try_execute() {
   char bite;
   size_t len;
   cmd_len.pull(&len);
-  Serial.print("cmd length: ");
-  Serial.println(len);
+  //Serial.print("cmd length: ");
+  //Serial.println(len);
   char *cmd = new char[len + 1];
 
   for (int i = 0; i < len; i++) {
@@ -60,8 +60,8 @@ void try_execute() {
   //string cmp with commands
   if(len < 4) {
     int speed = atoi(cmd);
-    if (speed > 0 && speed < 256){
-        Serial.println("Setting motor speed to: ");
+    if (speed > -1 && speed < 256){
+        Serial.print("Setting motor speed to: ");
         Serial.println(speed);
     }
   }
@@ -69,7 +69,7 @@ void try_execute() {
     mv_forward();
   } else if (strcmp(cmd, "empty") == 0) {
     mv_backward();
-  } else if (strcmp(cmd, "stop") {
+  } else if (strcmp(cmd, "stop") == 0) {
     stop();
   }
   go--;
