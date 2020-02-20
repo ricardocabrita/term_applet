@@ -1,9 +1,13 @@
 #include "RingBufCPP.h"
+#include "AFMotor.h"
 
 const size_t LINE_BUF_SIZE = 64;
 const size_t MAX_LINES = 4;
 RingBufCPP<char, LINE_BUF_SIZE> line;
 RingBufCPP<size_t, MAX_LINES> cmd_len;
+
+//pump motor init (DC)
+AF_DCMotor pump(1); //1Khz default pwm on channel 1
 
 bool error_flag;
 byte go;
@@ -39,8 +43,8 @@ void try_execute() {
   char bite;
   size_t len;
   cmd_len.pull(&len);
-  //Serial.print("cmd length: ");
-  //Serial.println(len);
+  Serial.print("cmd length: ");
+  Serial.println(len);
   char *cmd = new char[len + 1];
 
   for (int i = 0; i < len; i++) {
@@ -49,12 +53,16 @@ void try_execute() {
     //Serial.println(cmd[i]);
   }
   cmd[len] = '\0'; //strings end with \0
-
   //string cmp with commands
   if (strcmp(cmd, "fill") == 0) {
     mv_forward();
   } else if (strcmp(cmd, "empty") == 0) {
     mv_backward();
+  } else if (len < 4) {
+    int speed = atoi(cmd);
+    if (speed > 0 && speed < 256)
+      Serial.println("Setting motor speed to: ");
+    Serial.println(speed);
   }
   go--;
 
