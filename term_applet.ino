@@ -27,6 +27,10 @@ int mv_backward() {
   return 1;
 }
 
+int stop() {
+  Serial.println("Look at me I'm stopping the pump");
+  return 1;
+}
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -54,15 +58,19 @@ void try_execute() {
   }
   cmd[len] = '\0'; //strings end with \0
   //string cmp with commands
-  if (strcmp(cmd, "fill") == 0) {
+  if(len < 4) {
+    int speed = atoi(cmd);
+    if (speed > 0 && speed < 256){
+        Serial.println("Setting motor speed to: ");
+        Serial.println(speed);
+    }
+  }
+  else if (strcmp(cmd, "fill") == 0) {
     mv_forward();
   } else if (strcmp(cmd, "empty") == 0) {
     mv_backward();
-  } else if (len < 4) {
-    int speed = atoi(cmd);
-    if (speed > 0 && speed < 256)
-      Serial.println("Setting motor speed to: ");
-    Serial.println(speed);
+  } else if (strcmp(cmd, "stop") {
+    stop();
   }
   go--;
 
