@@ -13,25 +13,6 @@ bool error_flag;
 byte go;
 size_t nr_bytes;
 
-//motor cmd functions
-int mv_forward();
-int mv_backward();
-
-int mv_forward() {
-  Serial.println("Look at me i'm filling the sphere!");
-  return 1;
-}
-
-int mv_backward() {
-  Serial.println("Look at me i'm emptying the sphere!");
-  return 1;
-}
-
-int stop() {
-  Serial.println("Look at me I'm stopping the pump");
-  return 1;
-}
-
 void read_byte(char c) {
   if (c == '\n') {
     go++;
@@ -63,14 +44,18 @@ void try_execute() {
     if (speed > -1 && speed < 256){
         Serial.print("Setting motor speed to: ");
         Serial.println(speed);
+        pump.setSpeed(speed);
     }
   }
   else if (strcmp(cmd, "fill") == 0) {
-    mv_forward();
+    pump.run(FORWARD);
+    Serial.println("Look at me I'm filling the sphere!");
   } else if (strcmp(cmd, "empty") == 0) {
-    mv_backward();
+    pump.run(BACKWARD);
+    Serial.println("Look at me I'm emptying the sphere!");
   } else if (strcmp(cmd, "stop") == 0) {
-    stop();
+    pump.run(RELEASE);
+    Serial.println("Look at me I'm stopping the pump");
   }
   go--;
 
