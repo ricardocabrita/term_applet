@@ -1,5 +1,6 @@
 #include "RingBufCPP.h"
 #include "AFMotor.h"
+#include "SPI.h"
 
 const size_t LINE_BUF_SIZE = 64;
 const size_t MAX_LINES = 4;
@@ -12,6 +13,8 @@ AF_DCMotor pump(1); //1Khz default pwm on channel 1
 bool error_flag;
 byte go;
 size_t nr_bytes;
+
+const int ss_pin = 10;
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -66,7 +69,13 @@ void setup() {
   // put your setup code here, to run once:
   go =  0;
   error_flag = false;
+
+  //SPI setup for AD5293
+  pinMode(ss_pin, OUTPUT);
+
   Serial.begin(115200);
+
+  ad5293EnableWrite();
 }
 
 void loop() {
@@ -77,4 +86,19 @@ void loop() {
   if (go > 0)
     try_execute();
 
+}
+
+
+//AD5293 rheostat programming functions
+void ad5293EnableWrite() {
+  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+
+  digitalWrite(ss_pin, LOW);
+  //is a delay necessary here ? probably..
+  delay(100); //100ms delay.. could also monitor the RDY pin
+  SPI.transfer(0x18); //Command 4: 0001 10xx
+  SPI.transfer(0x02); //XXXX X01X
+  digitalWrite(ss_pin, HIGH);
+
+  SPI.endTransaction();
 }
