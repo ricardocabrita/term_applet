@@ -102,3 +102,17 @@ void ad5293EnableWrite() {
 
   SPI.endTransaction();
 }
+
+void ad5293potWrite(unsigned int val) {
+  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+
+  digitalWrite(ss_pin, LOW);
+
+  //val >> 8 2 higher bits of data + command
+  byte hibyte = (val >> 8) + 0x18
+  byte lobyte = val & 0xFF
+  SPI.transfer(hibyte);
+  SPI.transfer(lobyte);
+  digitalWrite(ss_pin, HIGH);
+  SPI.endTransaction();
+}
