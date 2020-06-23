@@ -14,7 +14,9 @@ bool error_flag;
 byte go;
 size_t nr_bytes;
 
+//pin out definitions
 const int ss_pin = 10;
+const int ad5293rdy = 8;
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -29,7 +31,8 @@ void read_byte(char c) {
 
 void try_execute() {
   char bite;
-  size_t len;
+  size_t len, len2=0;
+  bool double = false;
   cmd_len.pull(&len);
   //Serial.print("cmd length: ");
   //Serial.println(len);
@@ -37,17 +40,34 @@ void try_execute() {
 
   for (int i = 0; i < len; i++) {
     line.pull(&bite);
-    cmd[i] = bite;
+    if(bite == " "){
+      double = true;
+    }else{
+      if(double){}
+      cmd[i] = bite;
+    }
     //Serial.println(cmd[i]);
   }
   cmd[len] = '\0'; //strings end with \0
+  string scmd = cmd;
+  string potcmd = scmd.substring(0,2);
   //string cmp with commands
+
   if(len < 4) {
     int speed = atoi(cmd);
     if (speed > -1 && speed < 256){
         Serial.print("Setting motor speed to: ");
         Serial.println(speed);
         pump.setSpeed(speed);
+    }
+  }
+  else if (strcmp(potcmd, "pot") == 0) {
+    Serial.println("Got a pot command");
+    if(cmd[3] == " "){
+      int val = scmd.substring(4).toInt();
+      Serial.print("- setting wiper to: ")
+      Serial.println(val);
+      ad5293potWrite(val);
     }
   }
   else if (strcmp(cmd, "fill") == 0) {
@@ -72,6 +92,7 @@ void setup() {
 
   //SPI setup for AD5293
   pinMode(ss_pin, OUTPUT);
+  pinMode(ad5293rdy, INPUT);
 
   Serial.begin(115200);
 
@@ -95,7 +116,7 @@ void ad5293EnableWrite() {
 
   digitalWrite(ss_pin, LOW);
   //is a delay necessary here ? probably..
-  delay(100); //100ms delay.. could also monitor the RDY pin
+  delay(100); //100ms delay.. could also monitor the RDY pin ?
   SPI.transfer(0x18); //Command 4: 0001 10xx
   SPI.transfer(0x02); //XXXX X01X
   digitalWrite(ss_pin, HIGH);
@@ -109,10 +130,23 @@ void ad5293potWrite(unsigned int val) {
   digitalWrite(ss_pin, LOW);
 
   //val >> 8 2 higher bits of data + command
-  byte hibyte = (val >> 8) + 0x18
+  byte hibyte = (val >> 8) + 0x18 //example had + 0x04, but that can be right, right ?
   byte lobyte = val & 0xFF
   SPI.transfer(hibyte);
   SPI.transfer(lobyte);
   digitalWrite(ss_pin, HIGH);
   SPI.endTransaction();
+}
+
+int ad5293readWiper() {
+  //probably not gonna work...
+  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+
+  digitalWrite(ss_pin, LOW);
+  word cmd2 = word(0x08, 0x00);
+  int res = SPI.transfer16(cmd2);
+  int wiper = res & 0x3FF;
+  digitalWrite(ss_pin, HIGH);
+  SPI.endTransaction();
+  return wiper;
 }
