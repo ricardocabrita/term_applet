@@ -32,7 +32,7 @@ void read_byte(char c) {
 void try_execute() {
   char bite;
   size_t len, len2=0;
-  bool double = false;
+  bool twocmds = false;
   cmd_len.pull(&len);
   //Serial.print("cmd length: ");
   //Serial.println(len);
@@ -40,17 +40,13 @@ void try_execute() {
 
   for (int i = 0; i < len; i++) {
     line.pull(&bite);
-    if(bite == " "){
-      double = true;
-    }else{
-      if(double){}
-      cmd[i] = bite;
-    }
+    cmd[i] = bite;
     //Serial.println(cmd[i]);
   }
   cmd[len] = '\0'; //strings end with \0
-  string scmd = cmd;
-  string potcmd = scmd.substring(0,2);
+  String scmd = cmd;
+  String subzero = scmd.substring(0,4);
+
   //string cmp with commands
 
   if(len < 4) {
@@ -61,14 +57,12 @@ void try_execute() {
         pump.setSpeed(speed);
     }
   }
-  else if (strcmp(potcmd, "pot") == 0) {
+  else if (subzero == "pot ") {
     Serial.println("Got a pot command");
-    if(cmd[3] == " "){
-      int val = scmd.substring(4).toInt();
-      Serial.print("- setting wiper to: ")
-      Serial.println(val);
-      ad5293potWrite(val);
-    }
+    int val = scmd.substring(4).toInt();
+    Serial.print("- setting wiper to: ");
+    Serial.println(val);
+    //ad5293potWrite(val);  
   }
   else if (strcmp(cmd, "fill") == 0) {
     pump.run(FORWARD);
@@ -130,8 +124,8 @@ void ad5293potWrite(unsigned int val) {
   digitalWrite(ss_pin, LOW);
 
   //val >> 8 2 higher bits of data + command
-  byte hibyte = (val >> 8) + 0x18 //example had + 0x04, but that can be right, right ?
-  byte lobyte = val & 0xFF
+  byte hibyte = (val >> 8) + 0x18; //example had + 0x04, but that can be right, right ?
+  byte lobyte = val & 0xFF;
   SPI.transfer(hibyte);
   SPI.transfer(lobyte);
   digitalWrite(ss_pin, HIGH);
