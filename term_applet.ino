@@ -17,6 +17,7 @@ size_t nr_bytes;
 //pin out definitions
 const int ss_pin = 10;
 const int ad5293rdy = 8;
+const int spi_freq = 500000; //500 Khz
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -66,7 +67,7 @@ void try_execute() {
   }
   else if (strcmp(cmd, "potenable") == 0) {
     Serial.println("Enabling write to ad5293!");
-    ad5293EnableWrite();  
+    ad5293EnableWrite();
   }
   else if (strcmp(cmd, "potread") == 0) {
     Serial.println("Read wiper cmd");
@@ -93,9 +94,12 @@ void setup() {
   error_flag = false;
 
   //SPI setup for AD5293
-  pinMode(ss_pin, OUTPUT);
+  pinMode(ss_pin, OUTPUT);//~SYNC, SS
   digitalWrite(ss_pin, HIGH);
-  pinMode(ad5293rdy, INPUT);
+  pinMode(ad5293rdy, INPUT); //RDY
+  pinMode(11, OUTPUT); //MOSI
+  pinMode(12, INPUT); //MISO
+  pinMode(13, OUTPUT); //SCK
 
   Serial.begin(115200);
 
@@ -115,7 +119,7 @@ void loop() {
 
 //AD5293 rheostat programming functions
 void ad5293EnableWrite() {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
 
   digitalWrite(ss_pin, LOW);
   //is a delay necessary here ? probably..
@@ -128,7 +132,7 @@ void ad5293EnableWrite() {
 }
 
 void ad5293potWrite(unsigned int val) {
-  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
 
   digitalWrite(ss_pin, LOW);
 
@@ -144,7 +148,7 @@ void ad5293potWrite(unsigned int val) {
 int ad5293readWiper() {
   unsigned int res = 0;
 
-  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
   digitalWrite(ss_pin, LOW);
 
   byte hibyte = 0x08;
