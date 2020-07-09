@@ -17,7 +17,6 @@ size_t nr_bytes;
 //pin out definitions
 const int ss_pin = 10;
 const int ad5293rdy = 8;
-const int spi_freq = 500000; //500 Khz
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -119,7 +118,7 @@ void loop() {
 
 //AD5293 rheostat programming functions
 void ad5293EnableWrite() {
-  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE1));
 
   digitalWrite(ss_pin, LOW);
   //is a delay necessary here ? probably..
@@ -132,7 +131,7 @@ void ad5293EnableWrite() {
 }
 
 void ad5293potWrite(unsigned int val) {
-  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE1));
 
   digitalWrite(ss_pin, LOW);
 
@@ -148,14 +147,14 @@ void ad5293potWrite(unsigned int val) {
 int ad5293readWiper() {
   unsigned int res = 0;
 
-  SPI.beginTransaction(SPISettings(spi_freq, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(500000, MSBFIRST, SPI_MODE1));
   digitalWrite(ss_pin, LOW);
 
   byte hibyte = 0x08;
   byte lobyte = 0x00;
   SPI.transfer(hibyte);
   SPI.transfer(lobyte);
-  //delay(2); //wait for response to be ready, alternatively can also monitor the ready pin.
+  delay(2); //wait for response to be ready, alternatively can also monitor the ready pin.
   Serial.print("Rdy pin: ");
   Serial.println(digitalRead(ad5293rdy));
   res = SPI.transfer(0);
