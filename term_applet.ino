@@ -15,7 +15,7 @@ const int ss_pin = 10;
 const int ad5293rdy = 8;
 int kk = 0;
 
-int pins [5] = {8,12,10,13,11};
+int pins [3] = {10,13,11};
 
 void read_byte(char c) {
   if (c == '\n') {
@@ -28,7 +28,7 @@ void read_byte(char c) {
   }
 }
 
-void try_execute() {
+bool try_execute() {
   char bite;
   size_t len, len2=0;
   bool twocmds = false;
@@ -48,11 +48,13 @@ void try_execute() {
 
   if (strcmp(cmd, "check") == 0) {
     Serial.println("Yes, the serial cmd line is working");
-  } else {
+    return false;
+  }else if (strcmp(cmd, "test") == 0){
     Serial.println("Testing pin..");
+    return true;
   }
   go--;
-
+  return false;
 }
 
 
@@ -78,13 +80,15 @@ void loop() {
     read_byte(Serial.read());
 
   if (go > 0)
-    try_execute();
-    digitalWrite(pins[kk], HIGH);
-    Serial.print("Turning pin ");
-    Serial.print(kk);
-    Serial.println(" HIGH");
-    delay(5000); //wait 5 seconds
-    digitalWrite(pins[kk], LOW);
-    kk++;
+    if(try_execute()){
+      digitalWrite(pins[kk], HIGH);
+      Serial.print("Turning pin ");
+      Serial.print(kk);
+      Serial.println(" HIGH");
+      delay(5000); //wait 5 seconds
+      digitalWrite(pins[kk], LOW);
+      kk++;
+      if(kk == 5) kk = 0;
+    }
 
 }
