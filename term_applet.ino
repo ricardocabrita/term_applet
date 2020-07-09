@@ -62,7 +62,15 @@ void try_execute() {
     int val = scmd.substring(4).toInt();
     Serial.print("- setting wiper to: ");
     Serial.println(val);
-    //ad5293potWrite(val);  
+    ad5293potWrite(val);
+  }
+  else if (strcmp(cmd, "potenable") == 0) {
+    Serial.println("Enabling write to ad5293!");
+    ad5293EnableWrite();  
+  }
+  else if (strcmp(cmd, "potread") == 0) {
+    Serial.println("Read wiper cmd");
+    int wiper = ad5293readWiper();
   }
   else if (strcmp(cmd, "fill") == 0) {
     pump.run(FORWARD);
@@ -86,11 +94,12 @@ void setup() {
 
   //SPI setup for AD5293
   pinMode(ss_pin, OUTPUT);
+  digitalWrite(ss_pin, HIGH);
   pinMode(ad5293rdy, INPUT);
 
   Serial.begin(115200);
 
-  ad5293EnableWrite();
+  //ad5293EnableWrite();
 }
 
 void loop() {
@@ -110,7 +119,7 @@ void ad5293EnableWrite() {
 
   digitalWrite(ss_pin, LOW);
   //is a delay necessary here ? probably..
-  delay(100); //100ms delay.. could also monitor the RDY pin ?
+  //delay(100); //100ms delay.. could also monitor the RDY pin ?
   SPI.transfer(0x18); //Command 4: 0001 10xx
   SPI.transfer(0x02); //XXXX X01X
   digitalWrite(ss_pin, HIGH);
@@ -124,7 +133,7 @@ void ad5293potWrite(unsigned int val) {
   digitalWrite(ss_pin, LOW);
 
   //val >> 8 2 higher bits of data + command
-  byte hibyte = (val >> 8) + 0x18; //example had + 0x04, but that can be right, right ?
+  byte hibyte = (val >> 8) + 0x04; // 0x04 is command 1
   byte lobyte = val & 0xFF;
   SPI.transfer(hibyte);
   SPI.transfer(lobyte);
@@ -133,14 +142,29 @@ void ad5293potWrite(unsigned int val) {
 }
 
 int ad5293readWiper() {
-  //probably not gonna work...
-  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
+  unsigned int res = 0;
 
+  SPI.beginTransaction(SPISettings(SPI_CLOCK_DIV4, MSBFIRST, SPI_MODE1));
   digitalWrite(ss_pin, LOW);
-  word cmd2 = word(0x08, 0x00);
-  int res = SPI.transfer16(cmd2);
-  int wiper = res & 0x3FF;
+
+  byte hibyte = 0x08;
+  byte lobyte = 0x00;
+  SPI.transfer(hibyte);
+  SPI.transfer(lobyte);
+  //delay(2); //wait for response to be ready, alternatively can also monitor the ready pin.
+  Serial.print("Rdy pin: ");
+  Serial.println(digitalRead(ad5293rdy));
+  res = SPI.transfer(0);
+  Serial.print("Res: ");
+  Serial.println(res);
+  //res = res & 0x03; //only the last 2 bits of hi byte
+  //res = (res << 8) || SPI.transfer(0);
+  res = SPI.transfer(0);
+  //Serial.print("Res: ");
+  Serial.println(res);
+
   digitalWrite(ss_pin, HIGH);
   SPI.endTransaction();
-  return wiper;
+
+  return res;
 }
