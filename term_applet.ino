@@ -1,14 +1,10 @@
 #include "RingBufCPP.h"
-#include "AFMotor.h"
 #include "SPI.h"
 
 const size_t LINE_BUF_SIZE = 64;
 const size_t MAX_LINES = 4;
 RingBufCPP<char, LINE_BUF_SIZE> line;
 RingBufCPP<size_t, MAX_LINES> cmd_len;
-
-//pump motor init (DC)
-AF_DCMotor pump(1); //1Khz default pwm on channel 1
 
 bool error_flag;
 byte go;
@@ -53,7 +49,7 @@ void try_execute() {
   if (strcmp(cmd, "check") == 0) {
     Serial.println("Yes, the serial cmd line is working");
   } else {
-    Serial.pintln("Testing pin..");
+    Serial.println("Testing pin..");
   }
   go--;
 
@@ -74,7 +70,6 @@ void setup() {
 
   Serial.begin(115200);
 
-  ad5293EnableWrite();
 }
 
 void loop() {
