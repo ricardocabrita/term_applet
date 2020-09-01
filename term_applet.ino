@@ -1,14 +1,10 @@
 #include "RingBufCPP.h"
-#include "AFMotor.h"
 #include "SPI.h"
 
 const size_t LINE_BUF_SIZE = 64;
 const size_t MAX_LINES = 4;
 RingBufCPP<char, LINE_BUF_SIZE> line;
 RingBufCPP<size_t, MAX_LINES> cmd_len;
-
-//pump motor init (DC)
-AF_DCMotor pump(1); //1Khz default pwm on channel 1
 
 bool error_flag;
 byte go;
@@ -49,15 +45,7 @@ void try_execute() {
 
   //string cmp with commands
 
-  if(len < 4) {
-    int speed = atoi(cmd);
-    if (speed > -1 && speed < 256){
-        Serial.print("Setting motor speed to: ");
-        Serial.println(speed);
-        pump.setSpeed(speed);
-    }
-  }
-  else if (subzero == "pot ") {
+  if (subzero == "pot ") {
     Serial.println("Got a pot command");
     int val = scmd.substring(4).toInt();
     Serial.print("- setting wiper to: ");
@@ -72,15 +60,8 @@ void try_execute() {
     Serial.println("Read wiper cmd");
     int wiper = ad5293readWiper();
   }
-  else if (strcmp(cmd, "fill") == 0) {
-    pump.run(FORWARD);
-    Serial.println("Look at me I'm filling the sphere!");
-  } else if (strcmp(cmd, "empty") == 0) {
-    pump.run(BACKWARD);
-    Serial.println("Look at me I'm emptying the sphere!");
-  } else if (strcmp(cmd, "stop") == 0) {
-    pump.run(RELEASE);
-    Serial.println("Look at me I'm stopping the pump");
+  else if (strcmp(cmd, "whoami") == 0) {
+    Serial.println("I am the LED controller arduino board!");
   }
   go--;
 
