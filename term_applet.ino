@@ -42,25 +42,40 @@ void try_execute() {
   cmd[len] = '\0'; //strings end with \0
   String scmd = cmd;
   String subzero = scmd.substring(0,4);
-
+  String subzero3 = scmd.substring(0,3);
+  
   //string cmp with commands
 
-  if (subzero == "pot ") {
+  if(subzero == "pot ") {
+    
     Serial.println("Got a pot command");
     int val = scmd.substring(4).toInt();
     Serial.print("- setting wiper to: ");
     Serial.println(val);
-    ad5293potWrite(val);
-  }
-  else if (strcmp(cmd, "potenable") == 0) {
+    ad5293potWrite(val);   
+  } else if(subzero3 == "on ") {
+    
+    Serial.print("Turn ON command for LED");
+    int val = scmd.substring(4).toInt();
+    Serial.println(val);
+    digitalWrite(7, LOW);
+    
+  } else if(subzero == "off ") {
+
+    Serial.print("Turn OFF command for LED");
+    int val = scmd.substring(4).toInt();
+    Serial.println(val);
+    digitalWrite(7, HIGH);
+  } else if(strcmp(cmd, "potenable") == 0) {
+    
     Serial.println("Enabling write to ad5293!");
     ad5293EnableWrite();
-  }
-  else if (strcmp(cmd, "potread") == 0) {
+  } else if(strcmp(cmd, "potread") == 0) {
+    
     Serial.println("Read wiper cmd");
     int wiper = ad5293readWiper();
-  }
-  else if (strcmp(cmd, "whoami") == 0) {
+  } else if(strcmp(cmd, "whoami") == 0) {
+    
     Serial.println("I am the LED controller arduino board!");
   }
   go--;
@@ -80,6 +95,9 @@ void setup() {
   pinMode(11, OUTPUT); //MOSI
   pinMode(12, INPUT); //MISO
   pinMode(13, OUTPUT); //SCK
+
+  pinMode(7, OUTPUT); //Switch 1 LED
+  digitalWrite(7, HIGH); //start with LEDs off
 
   Serial.begin(115200);
 
